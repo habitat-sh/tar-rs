@@ -322,6 +322,18 @@ impl<'a> EntriesFields<'a> {
                 continue;
             }
 
+            if entry.header().as_ustar().is_some() && entry.header().entry_type().is_gnu_longname()
+            {
+                if gnu_longname.is_some() {
+                    return Err(other(
+                        "two long name entries describing \
+                         the same member",
+                    ));
+                }
+                gnu_longname = Some(EntryFields::from(entry).read_all()?);
+                continue;
+            }
+
             let mut fields = EntryFields::from(entry);
             fields.long_pathname = gnu_longname;
             fields.long_linkname = gnu_longlink;
